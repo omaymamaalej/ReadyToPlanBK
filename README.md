@@ -18,7 +18,7 @@ It then generates a complete AI-powered business plan using Google Gemini API.
 
 ##  Tech Stack
 
-- **Java 11**
+- **Java 17**
 - **Spring Boot**
 - **MongoDB**
 - **RESTful APIs**
