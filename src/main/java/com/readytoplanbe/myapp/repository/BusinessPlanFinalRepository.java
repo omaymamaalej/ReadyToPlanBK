@@ -15,5 +15,7 @@ import java.util.Optional;
 public interface BusinessPlanFinalRepository extends MongoRepository<BusinessPlanFinal, String> {
     Optional<BusinessPlanFinal> findByCompany_Id(String companyId);
     List<BusinessPlanFinal> findAllByCompany_Id(String companyId);
+    List<BusinessPlanFinal> findAllByOrderByCreationDateDesc();
+
 
 }

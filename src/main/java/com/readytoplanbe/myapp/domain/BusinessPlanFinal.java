@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.constraints.*;
+
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -29,7 +31,7 @@ public class BusinessPlanFinal implements Serializable {
 
     @Field("description")
     private String description;
-
+    @CreatedDate
     @Field("creation_date")
     private Instant creationDate;
 
@@ -47,6 +49,17 @@ public class BusinessPlanFinal implements Serializable {
 
     @Field("final_content")
     private String finalContent;
+
+    @Field("budget_Json_Data")
+    private String budgetJsonData;
+
+    public String getBudgetJsonData() {
+        return budgetJsonData;
+    }
+
+    public void setBudgetJsonData(String budgetJsonData) {
+        this.budgetJsonData = budgetJsonData;
+    }
 
     public String getFinalContent() {
         return finalContent;
@@ -203,7 +216,8 @@ public class BusinessPlanFinal implements Serializable {
             ", products=" + products +
             ", teams=" + teams +
             ", marketings=" + marketings +
-            ", finalContent='" + finalContent + '\'' +
+            ", finalContent='" + finalContent + '\'' +", budgetJsonData='" + budgetJsonData + '\'' +
             '}';
+
     }
 }

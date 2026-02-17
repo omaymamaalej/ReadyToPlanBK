@@ -1,25 +1,19 @@
 package com.readytoplanbe.myapp.web.rest;
 
-import com.readytoplanbe.myapp.domain.BusinessPlan;
-import com.readytoplanbe.myapp.domain.BusinessPlanFinal;
-import com.readytoplanbe.myapp.domain.Company;
-import com.readytoplanbe.myapp.domain.enumeration.ExportFormat;
-import com.readytoplanbe.myapp.repository.BusinessPlanFinalRepository;
-import com.readytoplanbe.myapp.repository.CompanyRepository;
+import com.readytoplanbe.myapp.domain.*;
+import com.readytoplanbe.myapp.repository.*;
 import com.readytoplanbe.myapp.service.BusinessPlanFinalService;
 import com.readytoplanbe.myapp.service.dto.BusinessPlanFinalDTO;
 import com.readytoplanbe.myapp.service.mapper.BusinessPlanFinalMapper;
 import com.readytoplanbe.myapp.web.rest.errors.BadRequestAlertException;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -29,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,6 +43,9 @@ public class BusinessPlanFinalResource {
     private final Logger log = LoggerFactory.getLogger(BusinessPlanFinalResource.class);
 
     private static final String ENTITY_NAME = "businessPlanFinal";
+    private final ProductOrServiceRepository productOrServiceRepository;
+    private final MarketingRepository marketingRepository;
+    private final TeamRepository teamRepository;
 
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
@@ -60,9 +57,12 @@ public class BusinessPlanFinalResource {
     private final BusinessPlanFinalRepository businessPlanFinalRepository;
 
     public BusinessPlanFinalResource(
-        BusinessPlanFinalMapper businessPlanFinalMapper, BusinessPlanFinalService businessPlanFinalService,
+        ProductOrServiceRepository productOrServiceRepository, MarketingRepository marketingRepository, TeamRepository teamRepository, BusinessPlanFinalMapper businessPlanFinalMapper, BusinessPlanFinalService businessPlanFinalService,
         CompanyRepository companyRepository, BusinessPlanFinalRepository businessPlanFinalRepository
     ) {
+        this.productOrServiceRepository = productOrServiceRepository;
+        this.marketingRepository = marketingRepository;
+        this.teamRepository = teamRepository;
         this.businessPlanFinalMapper = businessPlanFinalMapper;
         this.businessPlanFinalService = businessPlanFinalService;
         this.companyRepository = companyRepository;
@@ -88,7 +88,7 @@ public class BusinessPlanFinalResource {
             .created(new URI("/api/business-plan-finals/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId()))
             .body(result);
-    }
+    }/*
     @PostMapping("/generate/{companyId}")
     public BusinessPlanFinalDTO generateFinalPlan(@PathVariable String companyId, @RequestBody BusinessPlanFinalDTO dto) {
         Company company = companyRepository.findById(companyId).orElseThrow();
@@ -96,6 +96,45 @@ public class BusinessPlanFinalResource {
         entity.setCompany(company);
         BusinessPlanFinal result = businessPlanFinalService.generateBusinessPlan(company, entity);
         return businessPlanFinalMapper.toDto(result);
+    }*/
+    @PostMapping("/generate/{companyId}")
+    public ResponseEntity<BusinessPlanFinalDTO> generateFinalPlan(
+        @PathVariable String companyId,
+        @RequestBody BusinessPlanFinalDTO dto) {
+
+        // 1. Récupération de la compagnie
+        Company company = companyRepository.findById(companyId)
+            .orElseThrow(() -> new EntityNotFoundException("Company not found with id: " + companyId));
+
+        // Assigner companyName au champ title du DTO
+        dto.setTitle(company.getEnterpriseName());
+
+        // 2. Récupération des listes associées
+        List<ProductOrService> productsList = new ArrayList<>(
+            productOrServiceRepository.findAllByCompany_Id(companyId));
+        List<Team> teamMembersList = new ArrayList<>(
+            teamRepository.findAllByCompany_Id(companyId));
+        List<Marketing> marketingDataList = new ArrayList<>(
+            marketingRepository.findAllByCompany_Id(companyId));
+
+        // 3. Conversion en entité et génération
+        BusinessPlanFinal entity = businessPlanFinalMapper.toEntity(dto);
+        entity.setCompany(company);
+
+        // --- CRUCIAL CHANGE HERE ---
+        // Convert the Lists to Sets before passing them to the service method
+        // because generateBusinessPlan expects Sets.
+        BusinessPlanFinal result = businessPlanFinalService.generateBusinessPlan(
+            company,
+            new HashSet<>(productsList),   // Convert List<ProductOrService> to Set<ProductOrService>
+            new HashSet<>(teamMembersList), // Convert List<Team> to Set<Team>
+            new HashSet<>(marketingDataList),// Convert List<Marketing> to Set<Marketing>
+            entity);
+
+        // 4. Retour du DTO final
+        return ResponseEntity.ok()
+            .header("X-Generated-Date", Instant.now().toString())
+            .body(businessPlanFinalMapper.toDto(result));
     }
     @GetMapping("/business-plan-final/ai-only/{companyId}")
     public ResponseEntity<BusinessPlanFinalDTO> getAIOnlyBusinessPlan(@PathVariable String companyId) {
@@ -169,7 +208,16 @@ public class BusinessPlanFinalResource {
         BusinessPlanFinal result = businessPlanFinalService.update(businessPlanFinal);
         return ResponseEntity.ok().body(result);
     }
-
+    @GetMapping("/business-plan/statistics/by-date")
+    public Map<String, Long> getPlansGroupedByDate() {
+        List<BusinessPlanFinal> plans = businessPlanFinalRepository.findAll();
+        return plans.stream()
+            .collect(Collectors.groupingBy(
+                bp -> bp.getCreationDate().atZone(ZoneId.systemDefault()).toLocalDate().toString(),
+                TreeMap::new,
+                Collectors.counting()
+            ));
+    }
 
     /**
      * {@code PATCH  /business-plan-finals/:id} : Partial updates given fields of an existing businessPlanFinal, field will ignore if it is null

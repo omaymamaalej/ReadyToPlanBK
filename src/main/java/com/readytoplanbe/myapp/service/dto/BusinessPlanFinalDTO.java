@@ -10,6 +10,15 @@ public class BusinessPlanFinalDTO {
     private List<AIResponseDTO> aiResponses;
     private  String companyId;
     private String finalContent;
+    private String budgetJsonData;
+
+    public String getBudgetJsonData() {
+        return budgetJsonData;
+    }
+
+    public void setBudgetJsonData(String budgetJsonData) {
+        this.budgetJsonData = budgetJsonData;
+    }
 
     public String getFinalContent() {
         return finalContent;
@@ -69,6 +78,7 @@ public class BusinessPlanFinalDTO {
             ", aiResponses=" + aiResponses +
             ", companyId='" + companyId + '\'' +
             ", finalContent='" + finalContent + '\'' +
+            ", budgetJsonData='" + budgetJsonData + '\'' +
             '}';
     }
 }

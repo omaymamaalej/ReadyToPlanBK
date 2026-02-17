@@ -82,7 +82,7 @@ mongock:
 # API Keys
 gemini:
   api:
-    key: AIzaSyAQysYGTMJyllnb8DO-cqKYzlqG6d0OFt0
+    key:  AIzaSyCruO4NHKbYu20xII0-wsxQIIW1z5wNqJg
 
 deepai:
   api-key: "15c53b0f-eb4e-40af-8bbb-dd7809f10cad"
