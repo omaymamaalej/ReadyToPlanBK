@@ -1,6 +1,6 @@
-# 🚀 ReadyToPlan – AI Business Plan Generator (Backend)
+#  ReadyToPlan – AI Business Plan Generator (Backend)
 
-## 📌 Overview
+##  Overview
 
 **ReadyToPlan** is a backend application built with Spring Boot that automatically generates structured and professional business plans using Artificial Intelligence.
 
@@ -16,7 +16,7 @@ It then generates a complete AI-powered business plan using Google Gemini API.
 
 ---
 
-## 🏗️ Tech Stack
+##  Tech Stack
 
 - **Java 11**
 - **Spring Boot**
@@ -26,7 +26,7 @@ It then generates a complete AI-powered business plan using Google Gemini API.
 
 ---
 
-## ✨ Core Features
+##  Core Features
 
 - Company management
 - Product & service management
@@ -41,21 +41,21 @@ It then generates a complete AI-powered business plan using Google Gemini API.
 
 ---
 
-## ⚙️ Getting Started
+##  Getting Started
 
-### 1️⃣ Clone the repository
-
-```bash
+###  Clone the repository
 git clone https://github.com/omaymamaalej/ReadyToPlanBK.git
 cd ReadyToPlanBK
-Build the project
+
+### Build the project
 mvn clean install
 Run the application
 mvn spring-boot:run
-Environment Variables
+
+### Environment Variables
 GEMINI_API_KEY=your_api_key
 MONGODB_URI=your_mongodb_uri
-API Architecture
+### API Architecture
 The backend exposes REST APIs to:
 
 Manage business entities
@@ -65,7 +65,7 @@ Calculate financial forecasts
 Generate AI responses
 
 Aggregate a complete business plan
-Author
+### Author
 Omayma Maalej
 Master’s Degree in Software Engineering
 AI & Full Stack Developer
